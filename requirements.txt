@@ -5,3 +5,9 @@ langchain-chroma>=1.1.0,<2.0
 pypdf>=6.13,<7.0
 streamlit>=1.58,<2.0
 python-dotenv>=1.1,<2.0
+# chromadb pulls in opentelemetry; old opentelemetry-proto releases ship
+# generated code that crashes on import with protobuf >= 5 (TypeError in
+# descriptor.py). Pin both to a known-compatible pair. Use Python 3.12 on
+# Streamlit Cloud — 3.14 makes pip resolve the broken combination.
+opentelemetry-proto>=1.42,<2.0
+protobuf>=6,<7
