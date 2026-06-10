@@ -15,13 +15,19 @@ if not require_api_key():
     st.stop()
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Setting up the document index (first run only)...")
 def load_chain():
+    if not vectorstore_exists():
+        ingest()
     return build_chain(get_vectorstore())
 
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# Builds the index on the very first request after a cold start (chroma_db/
+# is gitignored, so it doesn't ship with the deploy). Cached afterwards.
+chain = load_chain()
 
 with st.sidebar:
     st.header("📄 Documents")
@@ -59,6 +65,7 @@ with st.sidebar:
             f"across {stats['files']} files "
             f"({stats['skipped_pages']} near-empty pages skipped)."
         )
+        st.rerun()
 
     if st.button("Clear chat"):
         st.session_state.messages = []
@@ -80,10 +87,6 @@ for message in st.session_state.messages:
                     st.caption(src["snippet"])
 
 if question := st.chat_input("Ask about the documents..."):
-    if not vectorstore_exists():
-        st.warning("Process the documents first (sidebar).")
-        st.stop()
-
     with st.chat_message("user"):
         st.markdown(question)
 
@@ -96,7 +99,7 @@ if question := st.chat_input("Ask about the documents..."):
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            answer, sources = ask(load_chain(), question, chat_history)
+            answer, sources = ask(chain, question, chat_history)
         st.markdown(answer)
         if sources:
             with st.expander("Sources"):
