@@ -4,7 +4,7 @@ A chatbot that answers questions about declassified US government UFO/UAP docume
 (CIA, DOE, ODNI). Ask it something, it digs through the scanned PDFs and answers
 with citations — file name and page number included.
 
-**Live demo:** [www.chatbot.arstudio.dev](https://www.chatbot.arstudio.dev)
+**Live demo:** [chatbot.arstudio.dev](https://chatbot.arstudio.dev)
 
 ## How it works
 
