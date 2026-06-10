@@ -1,0 +1,7 @@
+langchain-classic>=1.0.7,<2.0
+langchain-community>=0.4.2,<0.5
+langchain-google-genai>=4.2.4,<5.0
+langchain-chroma>=1.1.0,<2.0
+pypdf>=6.13,<7.0
+streamlit>=1.58,<2.0
+python-dotenv>=1.1,<2.0
