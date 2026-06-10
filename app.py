@@ -99,7 +99,14 @@ if question := st.chat_input("Ask about the documents..."):
 
     with st.chat_message("assistant"):
         with st.spinner("Thinking..."):
-            answer, sources = ask(chain, question, chat_history)
+            try:
+                answer, sources = ask(chain, question, chat_history)
+            except Exception:
+                st.error(
+                    "Gemini is rate-limited or temporarily unavailable. "
+                    "Please wait a moment and try again."
+                )
+                st.stop()
         st.markdown(answer)
         if sources:
             with st.expander("Sources"):

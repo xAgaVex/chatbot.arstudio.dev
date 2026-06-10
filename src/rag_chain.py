@@ -1,3 +1,5 @@
+import time
+
 from langchain_chroma import Chroma
 from langchain_classic.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
@@ -55,11 +57,24 @@ def build_chain(vectorstore: Chroma) -> Runnable:
     return create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
 
+def _invoke_with_retry(chain: Runnable, payload: dict, attempts: int = 3) -> dict:
+    """Invoke the chain, retrying on transient Gemini errors (rate limits,
+    momentary 5xxs) so a busy demo doesn't crash on a single request."""
+    transient = ("RESOURCE_EXHAUSTED", "UNAVAILABLE", "INTERNAL", "DEADLINE_EXCEEDED")
+    for attempt in range(attempts):
+        try:
+            return chain.invoke(payload)
+        except Exception as e:
+            if not any(code in str(e) for code in transient) or attempt == attempts - 1:
+                raise
+            time.sleep(2 * (attempt + 1) ** 2)
+
+
 def ask(
     chain: Runnable, question: str, chat_history: list[BaseMessage]
 ) -> tuple[str, list[dict]]:
     """Run one conversational turn; return the answer and deduped sources."""
-    result = chain.invoke({"input": question, "chat_history": chat_history})
+    result = _invoke_with_retry(chain, {"input": question, "chat_history": chat_history})
 
     sources: list[dict] = []
     seen: set[tuple] = set()
